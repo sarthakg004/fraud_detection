@@ -1,9 +1,0 @@
-stages:
-  preprocessing:
-    cmd: python src\data\preprocessing.py
-    deps:
-    - src\data\preprocessing.py
-    params:
-    - params.yaml
-    outs:
-    - data\interim
