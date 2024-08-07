@@ -1,0 +1,15 @@
+paths:
+  raw_train_data_path : "./data/raw/Dev_data_to_be_shared.csv"
+  raw_test_data_path : "./data/raw/validation_data_to_be_shared.csv"
+
+  train_data_cleaned_path : "./data/interim/train_data_cleaned.csv"
+  test_data_cleaned_path : "./data/interim/validation_data_cleaned.csv"
+
+preprocessing:
+  null_percentage : 0.2
+  null_row_threshold : 15
+  # encoding_type can be either "frequency" or "ordinal" 
+  encoding_type : "ordinal"  
+
+  imputation_strategy: "median"  # can be mean, median, most_frequent i.e.mode, KNN
+  knn_n_neighbors: 5          # number of neighbors to consider for KNN imputation
