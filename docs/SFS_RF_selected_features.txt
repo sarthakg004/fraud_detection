@@ -1,0 +1,53 @@
+Selected Features:
+demog_1
+city_tier
+occupation
+demog_5
+demog_21
+others_1
+others_2
+others_5
+others_7
+others_9
+others_11
+others_23
+others_25
+others_26
+demog_23
+demog_26
+demog_32
+others_36
+email_domain
+demog_40
+account_opening_month
+account_opening_year
+
+ 
+ 
+ parameters
+cv: 5
+direction: forward
+estimator__bootstrap: True
+estimator__ccp_alpha: 0.0
+estimator__class_weight: None
+estimator__criterion: gini
+estimator__max_depth: None
+estimator__max_features: sqrt
+estimator__max_leaf_nodes: None
+estimator__max_samples: None
+estimator__min_impurity_decrease: 0.0
+estimator__min_samples_leaf: 1
+estimator__min_samples_split: 2
+estimator__min_weight_fraction_leaf: 0.0
+estimator__monotonic_cst: None
+estimator__n_estimators: 100
+estimator__n_jobs: None
+estimator__oob_score: False
+estimator__random_state: 42
+estimator__verbose: 0
+estimator__warm_start: False
+estimator: RandomForestClassifier(random_state=42)
+n_features_to_select: auto
+n_jobs: None
+scoring: f1_macro
+tol: None

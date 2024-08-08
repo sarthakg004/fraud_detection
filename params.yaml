@@ -4,6 +4,9 @@ paths:
 
   train_data_cleaned_path : "./data/interim/train_data_cleaned.csv"
   test_data_cleaned_path : "./data/interim/validation_data_cleaned.csv"
+  
+  train_data_processed_path : "./data/processed/train_data_processed.csv"
+  test_data_processed_path : "./data/processed/validation_data_processed.csv"
 
 preprocessing:
   null_percentage : 0.2
@@ -11,5 +14,40 @@ preprocessing:
   # encoding_type can be either "frequency" or "ordinal" 
   encoding_type : "ordinal"  
 
-  imputation_strategy: "median"  # can be mean, median, most_frequent i.e.mode, KNN
+  imputation_strategy: "mean"  # can be mean, median, most_frequent i.e.mode, KNN
   knn_n_neighbors: 5          # number of neighbors to consider for KNN imputation
+
+
+### REFCV : 20 min
+### ANOVA : 1 min
+### ANOVA_FIND_K : 75 min
+### FORWARD_SELECTION : {rf : 150 hr , xgb : 131 min} on GPU 
+### RFECV_XGB : 1 min
+feature_engineering:
+  variance_threshold: 0.05 # threshold for variance thresholding tor remove almost constant features
+  selection_technique: "RFECV_XGB"  # method to select features, can be "RFECV_RF", "RFECV_XGB", "ANOVA","FORWARD_SELECTION"
+  k_folds : 5  # number of folds for cross validation
+  random_state: 42
+### Parameters for RFECV_RF
+  rfecv_rf_step: 1  # number of features to remove at each iteration
+  rfecv_rf_scoring : 'f1_macro'  # scoring metric for RFECV
+## Parameters for RFE_XGB
+  rfecv_xgb_eval_metric: 'logloss'  # evaluation metric for XGB
+  rfecv_xgb_step: 1                  # number of features to remove at each iteration
+  rfecv_xgb_scoring : 'f1_macro'  # scoring metric for RFECV
+## parameters for ANOVA
+  anova_k: 10  # number of features to select
+  anova_scoring : 'f1_macro'  # scoring metric for ANOVA
+  ### very time consuming process
+  anova_find_k : FALSE  # using different values of k for feature selection using ANOVA and applying StratifiedKFolds 
+                        # along with RandomForest to get the best value of K i.e. the value of K for which the performance metric is best
+
+  ## parameters for FORWARD_SELECTION
+  sfs_direction : 'forward'  # direction of forward selection, can be forward or backward
+  forward_selection_classifier: 'XGB'  # classifier to use for forward selection  can be either RF or XGB
+  forward_selection_device : 'cuda'
+  forward_selection_n_features: 'auto' # number of features to select
+  forward_selection_scoring : 'f1_macro'  # scoring metric for forward selection
+  forward_selection_cv: 5  # number of folds for cross validation
+  forward_selection_xgb_eval_metric: 'logloss'  # evaluation metric for XGB
+  

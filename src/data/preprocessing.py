@@ -46,6 +46,18 @@ train_df['account_opening_date'] = pd.to_datetime(train_df['account_opening_date
 validation_df['account_opening_date'] = pd.to_datetime(validation_df['account_opening_date'], format='%d-%m-%Y')
 
 
+# Create new columns for account opening month and year
+train_df['account_opening_month'] = train_df['account_opening_date'].dt.month_name()
+train_df['account_opening_year'] = train_df['account_opening_date'].dt.year
+train_df.drop(columns='account_opening_date', inplace=True)
+
+validation_df['account_opening_month'] = validation_df['account_opening_date'].dt.month_name()
+validation_df['account_opening_year'] = validation_df['account_opening_date'].dt.year
+validation_df.drop(columns='account_opening_date', inplace=True)
+
+train_df['account_opening_year'] = train_df['account_opening_year'].astype(str)
+validation_df['account_opening_year'] = validation_df['account_opening_year'].astype(str)
+
 '''Converting the 'income' column to a categorical column with the following categories:'''
 # Define a function to map ranges to categories
 def map_to_category(range_str):
@@ -118,6 +130,8 @@ for col in bool_col:
     train_df[col] = train_df[col].map({True: 1, False: 0})
     validation_df[col] = validation_df[col].map({True: 1, False: 0})
     
+# train_df['account_opening_year'] = train_df['account_opening_year'].map({2023: 1, 2022: 0})
+# validation_df['account_opening_year'] = validation_df['account_opening_year'].map({2023: 1, 2022: 0})
 '''Converting the 'email_domain' column to a categorical column with the following categories:'''
 # Define a function to map country codes to categories
 def map_to_category(range_str):
@@ -182,13 +196,10 @@ else:
     '''Imputing missing values using SimpleImputer'''
     from sklearn.impute import SimpleImputer
 
-    train_exclude = train_df[['account_opening_date', 'Target']]
-    validation_exclude = validation_df[['account_opening_date']]
+    train_exclude = train_df[['Target']]
 
     # Remove the columns to exclude from the datasets
-    train_features = train_df.drop(columns=['account_opening_date', 'Target'])
-    validation_features = validation_df.drop(columns=['account_opening_date'])
-
+    train_features = train_df.drop(columns=['Target'])
     # Initialize SimpleImputer with median strategy
     imputer = SimpleImputer(strategy=IMPUTATON_TYPE)
 
@@ -196,12 +207,10 @@ else:
     train_imputed = pd.DataFrame(imputer.fit_transform(train_features), columns=train_features.columns)
 
     # Transform the validation dataset using the same imputer
-    validation_imputed = pd.DataFrame(imputer.transform(validation_features), columns=validation_features.columns)
+    validation_imputed = pd.DataFrame(imputer.transform(validation_df), columns=validation_df.columns)
 
     # Add the excluded columns back to the imputed datasets
     train_imputed = pd.concat([train_imputed, train_exclude.reset_index(drop=True)], axis=1)
-    validation_imputed = pd.concat([validation_imputed, validation_exclude.reset_index(drop=True)], axis=1)
-
 
 train_imputed.to_csv(CLEAN_TRAIN_DATA_PATH, index=False)
 validation_imputed.to_csv(CLEAN_VALIDATION_DATA_PATH, index=False)
