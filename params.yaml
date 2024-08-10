@@ -8,6 +8,8 @@ paths:
   train_data_processed_path : "./data/processed/train_data_processed.csv"
   test_data_processed_path : "./data/processed/validation_data_processed.csv"
 
+  model_path : "./models/model.pkl"
+
 preprocessing:
   null_percentage : 0.2
   null_row_threshold : 15
@@ -51,3 +53,8 @@ feature_engineering:
   forward_selection_cv: 5  # number of folds for cross validation
   forward_selection_xgb_eval_metric: 'logloss'  # evaluation metric for XGB
   
+model_building:
+  test_size : 0.2
+  random_state: 42
+  model : "XGB"  ## can be either 'XGB' or 'ANOMOLY'
+  tuning: True
