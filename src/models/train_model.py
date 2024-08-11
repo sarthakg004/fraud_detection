@@ -24,9 +24,10 @@ TEST_SIZE = params['test_size']
 RANDOM_STATE = params['random_state']
 FEATURE_SELECTION_TECHNIQUE  =yaml.safe_load(open('./params.yaml'))['feature_engineering']['selection_technique']
 HYPERPARAMETER_TUNING = params['tuning']
+THRESHOLD = params['threshold']
 
-train_df = pd.read_csv('TRAIN_DATA_PATH')
-validation_df = pd.read_csv('VALIDATION_DATA_PATH')
+train_df = pd.read_csv(TRAIN_DATA_PATH)
+validation_df = pd.read_csv(VALIDATION_DATA_PATH)
 
 
 # Splitting the dataset into training and testing sets
@@ -105,7 +106,7 @@ if MODEL == 'XGB':
 
         # Adjusting the decision threshold
         ## threshold for transaction to be non fradulent i.e. if threshold = 1 all transactions are non fradulent
-        threshold = 0.3
+        threshold = THRESHOLD
         y_pred_proba = model.predict_proba(X_test)[:, 1]
         y_pred_threshold = (y_pred_proba >= threshold).astype(int)
 
@@ -131,5 +132,4 @@ elif MODEL == 'ANOMOLY':
 # Save the model
 joblib.dump(model, MODEL_PATH)
 
-# To load the model later
-# model = joblib.load('xgboost_model.pkl')
+
