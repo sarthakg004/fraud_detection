@@ -14,7 +14,7 @@ preprocessing:
   null_percentage : 0.2
   null_row_threshold : 15
   # encoding_type can be either "frequency" or "ordinal" 
-  encoding_type : "ordinal"  
+  encoding_type : "frequency"  
 
   imputation_strategy: "mean"  # can be mean, median, most_frequent i.e.mode, KNN
   knn_n_neighbors: 5          # number of neighbors to consider for KNN imputation
@@ -54,11 +54,11 @@ feature_engineering:
   forward_selection_xgb_eval_metric: 'logloss'  # evaluation metric for XGB
   
 model_building:
-  test_size : 0.2
+  test_size : 0.3
   random_state: 42
   model : "XGB"  ## can be either 'XGB' or 'ANOMOLY'
   tuning: False
-  threshold : 0.2  # threshold for xgb model to classify a sample as fraud, threshold close to zero it is a fraud and vice versa
+  threshold : 0.3  # threshold for xgb model to classify a sample as fraud, threshold close to zero it is a fraud and vice versa
 
 predict_model:
   input : 'file'  # input can be either 'manual' or 'file'

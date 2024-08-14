@@ -1,0 +1,10 @@
+Index(['demog_1', 'demog_2', 'demog_3', 'city_tier', 'occupation', 'demog_4',
+       'demog_5', 'demog_8', 'demog_9', 'demog_15', 'demog_20', 'demog_21',
+       'others_1', 'others_2', 'others_5', 'others_6', 'others_7', 'others_8',
+       'others_9', 'others_10', 'others_11', 'others_12', 'others_13',
+       'others_21', 'others_22', 'others_23', 'others_24', 'others_25',
+       'others_26', 'others_27', 'others_28', 'demog_23', 'demog_24',
+       'demog_26', 'demog_30', 'demog_32', 'others_35', 'others_36',
+       'others_39', 'email_domain', 'demog_40', 'demog_43',
+       'account_opening_month', 'account_opening_year', 'income_category'],
+      dtype='object')

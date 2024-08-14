@@ -9,31 +9,49 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.model_selection import RandomizedSearchCV, StratifiedKFold
 import joblib
+import dagshub 
 
-'''Loading parameters'''
-paths = yaml.safe_load(open('./params.yaml'))['paths']
-params = yaml.safe_load(open('./params.yaml'))['model_building']
+dagshub.init(repo_owner='sarthakg004', repo_name='fraud_detection', mlflow=True)
+mlflow.set_tracking_uri("https://dagshub.com/sarthakg004/fraud_detection.mlflow")
 
-TRAIN_DATA_PATH = paths['train_data_processed_path']
-VALIDATION_DATA_PATH = paths['test_data_processed_path']
-MODEL_PATH = paths['model_path']
-
-MODEL = params['model']
-TEST_SIZE = params['test_size']
-RANDOM_STATE = params['random_state']
-FEATURE_SELECTION_TECHNIQUE = yaml.safe_load(open('./params.yaml'))['feature_engineering']['selection_technique']
-HYPERPARAMETER_TUNING = params['tuning']
-THRESHOLD = params['threshold']
-
-train_df = pd.read_csv(TRAIN_DATA_PATH)
-validation_df = pd.read_csv(VALIDATION_DATA_PATH)
-
-# Splitting the dataset into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(train_df.drop(columns=['Target']), train_df['Target'],
-                                                    test_size=TEST_SIZE, random_state=RANDOM_STATE, stratify=train_df['Target'])
 
 # Start an MLflow run
 with mlflow.start_run():
+    
+    '''Loading parameters'''
+    paths = yaml.safe_load(open('./params.yaml'))['paths']
+    params = yaml.safe_load(open('./params.yaml'))['model_building']
+    feature_params = yaml.safe_load(open('./params.yaml'))['feature_engineering']
+    preprocess_params = yaml.safe_load(open('./params.yaml'))['preprocessing']
+    
+
+    TRAIN_DATA_PATH = paths['train_data_processed_path']
+    VALIDATION_DATA_PATH = paths['test_data_processed_path']
+    MODEL_PATH = paths['model_path']
+
+    MODEL = params['model']
+    TEST_SIZE = params['test_size']
+    RANDOM_STATE = params['random_state']
+    FEATURE_SELECTION_TECHNIQUE = yaml.safe_load(open('./params.yaml'))['feature_engineering']['selection_technique']
+    HYPERPARAMETER_TUNING = params['tuning']
+    THRESHOLD = params['threshold']
+
+    
+
+    mlflow.log_param("test_size", TEST_SIZE)
+    mlflow.log_param("feature_selection_technique", FEATURE_SELECTION_TECHNIQUE)
+    mlflow.log_param("hyperparameter_tuning", HYPERPARAMETER_TUNING)
+    mlflow.log_param("encoding_type", preprocess_params['encoding_type'])
+    
+    
+    
+    
+    train_df = pd.read_csv(TRAIN_DATA_PATH)
+    validation_df = pd.read_csv(VALIDATION_DATA_PATH)
+
+    # Splitting the dataset into training and testing sets
+    X_train, X_test, y_train, y_test = train_test_split(train_df.drop(columns=['Target']), train_df['Target'],
+                                                        test_size=TEST_SIZE, random_state=RANDOM_STATE, stratify=train_df['Target'])
 
     if MODEL == 'XGB':
         if not HYPERPARAMETER_TUNING:
@@ -62,7 +80,7 @@ with mlflow.start_run():
             plt.xlabel('Predicted Labels')
             plt.ylabel('True Labels')
             plt.title('Confusion Matrix')
-            cm_path = f'./reports/figures/{MODEL}_{FEATURE_SELECTION_TECHNIQUE}.png'
+            cm_path = f'./reports/figures/confusion_matrix.png'
             plt.savefig(cm_path)
             mlflow.log_artifact(cm_path)
 

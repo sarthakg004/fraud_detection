@@ -7,6 +7,10 @@ from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 import mlflow
 import mlflow.sklearn
+import dagshub
+
+dagshub.init(repo_owner='sarthakg004', repo_name='fraud_detection', mlflow=True)
+mlflow.set_tracking_uri("https://dagshub.com/sarthakg004/fraud_detection.mlflow")
 
 # Start MLflow run
 with mlflow.start_run(run_name="feature_engineering"):
@@ -15,8 +19,7 @@ with mlflow.start_run(run_name="feature_engineering"):
     paths = yaml.safe_load(open('./params.yaml'))['paths']
     params = yaml.safe_load(open('./params.yaml'))['feature_engineering']
 
-    # Log parameters
-    mlflow.log_params(params)
+
 
     TRAIN_DATA_PATH = paths['train_data_cleaned_path']
     VALIDATION_DATA_PATH = paths['test_data_cleaned_path']
@@ -70,11 +73,14 @@ with mlflow.start_run(run_name="feature_engineering"):
             optimal_k = k_values[np.argmax(mean_scores)]
             selector = SelectKBest(score_func=f_classif, k=optimal_k).fit(X, y)
             selected_features = X.columns[selector.get_support()]
-            mlflow.log_metric("optimal_k", optimal_k)
+            mlflow.log_param("selected_features", selected_features)
         else:
             selector = SelectKBest(score_func=f_classif, k=ANOVA_K).fit(X, y)
             selected_features = X.columns[selector.get_support()]
+            mlflow.log_param("selected_features", selected_features)
         
+        X = X[selected_features]
+        validation_df = validation_df[selected_features]    
 
     elif SELECTION_TECHNIQUE == 'RFECV_RF':
         rf = RandomForestClassifier(random_state=RANDOM_STATE)
@@ -84,8 +90,7 @@ with mlflow.start_run(run_name="feature_engineering"):
         X = X[selected_features_rf]
         validation_df = validation_df[selected_features_rf]
         optimal_features = rfecv_rf.n_features_
-        mlflow.log_metric("optimal_features_rf", optimal_features)
-        
+        mlflow.log_param("selected_features", selected_features)
 
     elif SELECTION_TECHNIQUE == 'RFECV_XGB':
         xgb = XGBClassifier(random_state=RANDOM_STATE, eval_metric=RFECV_XGB_EVAL_METRIC)
@@ -95,8 +100,7 @@ with mlflow.start_run(run_name="feature_engineering"):
         X = X[selected_features_xgb]
         validation_df = validation_df[selected_features_xgb]
         optimal_features = rfecv_xgb.n_features_
-        mlflow.log_metric("optimal_features_xgb", optimal_features)
-        
+        mlflow.log_param("selected_features", selected_features)
 
     elif SELECTION_TECHNIQUE == 'FORWARD_SELECTION':
         clf = {"RF": RandomForestClassifier(random_state=RANDOM_STATE, n_jobs=-1),
@@ -107,16 +111,11 @@ with mlflow.start_run(run_name="feature_engineering"):
         selected_features_sfs = X.columns[sfs.get_support()]
         X = X[selected_features_sfs]
         validation_df = validation_df[selected_features_sfs]
-        mlflow.log_metric("optimal_features_sfs", sfs.n_features_in_)
-        
+        mlflow.log_param("selected_features", selected_features)
 
     '''Saving processed data'''
     train_df = pd.concat([X, y], axis=1)
     train_df.to_csv(TRAIN_DATA_PROCESSED_PATH, index=False)
     validation_df.to_csv(VALIDATION_DATA_PROCESSED_PATH, index=False)
-
-    # Log the processed datasets as artifacts
-    mlflow.log_artifact(TRAIN_DATA_PROCESSED_PATH, artifact_path="processed_data")
-    mlflow.log_artifact(VALIDATION_DATA_PROCESSED_PATH, artifact_path="processed_data") 
 
     mlflow.end_run()
