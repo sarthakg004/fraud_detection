@@ -1,0 +1,41 @@
+stages:
+  preprocess:
+    cmd: python src/data/preprocessing.py
+    deps:
+      - src/data/preprocessing.py
+      - params.yaml
+      - data/raw/Dev_data_to_be_shared.csv
+      - data/raw/validation_data_to_be_shared.csv
+    outs:
+      - data/interim/train_data_cleaned.csv
+      - data/interim/validation_data_cleaned.csv
+
+  feature_engineering:
+    cmd: python src/features/feature_engineering.py
+    deps:
+      - src/features/feature_engineering.py
+      - params.yaml
+      - data/interim/train_data_cleaned.csv
+      - data/interim/validation_data_cleaned.csv
+    outs:
+      - data/processed/train_data_processed.csv
+      - data/processed/validation_data_processed.csv
+
+  model_training:
+    cmd: python src/models/train_model.py
+    deps:
+      - src/models/train_model.py
+      - params.yaml
+      - data/processed/train_data_processed.csv
+      - data/processed/validation_data_processed.csv
+    outs:
+      - models/model.pkl
+
+  # evaluation:
+  #   cmd: python evaluation.py
+  #   deps:
+  #     - evaluation.py
+  #     - models/model.pkl
+  #     - params.yaml
+  #   outs:
+  #     - metrics/metrics.json

@@ -1,0 +1,16 @@
+artifact_uri: file:///C:/Users/sarth/OneDrive/Documents/fraud_detection/mlruns/0/4ad5313c997e4261b82bcb02113575d7/artifacts
+deleted_time: 1723654875551
+end_time: 1723653875523
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: deleted
+run_id: 4ad5313c997e4261b82bcb02113575d7
+run_name: feature_engineering
+run_uuid: 4ad5313c997e4261b82bcb02113575d7
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1723653796975
+status: 4
+tags: []
+user_id: sarth

@@ -1,0 +1,16 @@
+artifact_uri: file:///C:/Users/sarth/OneDrive/Documents/fraud_detection/mlruns/0/1ad4816e901244afacba8d8ed847f4db/artifacts
+deleted_time: 1723654916982
+end_time: 1723654221380
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: deleted
+run_id: 1ad4816e901244afacba8d8ed847f4db
+run_name: trusting-mink-13
+run_uuid: 1ad4816e901244afacba8d8ed847f4db
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1723654213508
+status: 3
+tags: []
+user_id: sarth

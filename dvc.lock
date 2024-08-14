@@ -1,0 +1,82 @@
+schema: '2.0'
+stages:
+  preprocess:
+    cmd: python src/data/preprocessing.py
+    deps:
+    - path: data/raw/Dev_data_to_be_shared.csv
+      hash: md5
+      md5: 78f85ac95550c75bf18b92c88d3f768d
+      size: 44746685
+    - path: data/raw/validation_data_to_be_shared.csv
+      hash: md5
+      md5: 32dd67aed1066aded5af370abe2f6a02
+      size: 22379342
+    - path: params.yaml
+      hash: md5
+      md5: c99794dab25c9ba7f1e04949fa9ab1a9
+      size: 3028
+    - path: src/data/preprocessing.py
+      hash: md5
+      md5: 8288e3533f0e61f69311f6d716885649
+      size: 9082
+    outs:
+    - path: data/interim/train_data_cleaned.csv
+      hash: md5
+      md5: 7fafbf94f49d6746bd8898521d18a6d6
+      size: 37759703
+    - path: data/interim/validation_data_cleaned.csv
+      hash: md5
+      md5: 35f53a582bd890cf95ca53df0d06b761
+      size: 19843847
+  feature_engineering:
+    cmd: python src/features/feature_engineering.py
+    deps:
+    - path: data/interim/train_data_cleaned.csv
+      hash: md5
+      md5: 7fafbf94f49d6746bd8898521d18a6d6
+      size: 37759703
+    - path: data/interim/validation_data_cleaned.csv
+      hash: md5
+      md5: 35f53a582bd890cf95ca53df0d06b761
+      size: 19843847
+    - path: params.yaml
+      hash: md5
+      md5: c99794dab25c9ba7f1e04949fa9ab1a9
+      size: 3028
+    - path: src/features/feature_engineering.py
+      hash: md5
+      md5: 401f04db793f611e55ea97a63c59120e
+      size: 5850
+    outs:
+    - path: data/processed/train_data_processed.csv
+      hash: md5
+      md5: dc9873bd35948c746281ef61e5f1caa0
+      size: 17308126
+    - path: data/processed/validation_data_processed.csv
+      hash: md5
+      md5: c41dcf90194cf94530dd9d93ee276faa
+      size: 9168519
+  model_training:
+    cmd: python src/models/train_model.py
+    deps:
+    - path: data/processed/train_data_processed.csv
+      hash: md5
+      md5: dc9873bd35948c746281ef61e5f1caa0
+      size: 17308126
+    - path: data/processed/validation_data_processed.csv
+      hash: md5
+      md5: c41dcf90194cf94530dd9d93ee276faa
+      size: 9168519
+    - path: params.yaml
+      hash: md5
+      md5: c99794dab25c9ba7f1e04949fa9ab1a9
+      size: 3028
+    - path: src/models/train_model.py
+      hash: md5
+      md5: be3eb1f858c33d73999c1be0db7b44d3
+      size: 5812
+    outs:
+    - path: models/model.pkl
+      hash: md5
+      md5: bbd256038e1e4325b14bf019e7db968f
+      size: 266118

@@ -76,9 +76,8 @@ target/
 .ipynb_checkpoints/
 
 # exclude data from source control by default
-# /data/
-data\interim\train_data_cleaned.csv
-data\interim\validation_data_cleaned.csv
+/data/
+
 # Mac OS-specific storage files
 .DS_Store
 
