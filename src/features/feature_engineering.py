@@ -6,12 +6,16 @@ from sklearn.model_selection import cross_val_score, StratifiedKFold
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 import mlflow
+import matplotlib.pyplot as plt
 import mlflow.sklearn
 import dagshub
+
 
 dagshub.init(repo_owner='sarthakg004', repo_name='fraud_detection', mlflow=True)
 mlflow.set_tracking_uri("https://dagshub.com/sarthakg004/fraud_detection.mlflow")
 
+experiment_name = yaml.safe_load(open('./params.yaml'))['paths']['experiment_name']
+mlflow.set_experiment(experiment_name=experiment_name)
 # Start MLflow run
 with mlflow.start_run(run_name="feature_engineering"):
 
@@ -44,6 +48,10 @@ with mlflow.start_run(run_name="feature_engineering"):
     FORWARD_SELECTION_CV = params['forward_selection_cv']
     FORWARD_SELECTION_XGB_EVAL_METRIC = params['forward_selection_xgb_eval_metric']
 
+    
+    mlflow.log_param("variance_threshold", VARIANCE_THRESHOLD)
+    
+    
     '''Loading data'''
     train_df = pd.read_csv(TRAIN_DATA_PATH)
     validation_df = pd.read_csv(VALIDATION_DATA_PATH)
@@ -57,6 +65,8 @@ with mlflow.start_run(run_name="feature_engineering"):
     selected_features = X.columns[selector.get_support(indices=True)]
     X = X[selected_features]
     validation_df = validation_df[selected_features]
+    
+
 
     '''Performing feature selection based on selection technique'''
     if SELECTION_TECHNIQUE == 'ANOVA':
@@ -70,14 +80,25 @@ with mlflow.start_run(run_name="feature_engineering"):
                 cv = StratifiedKFold(n_splits=5)
                 scores = cross_val_score(clf, X_new, y, cv=cv, scoring='f1_macro')
                 mean_scores.append(np.mean(scores))
+                
             optimal_k = k_values[np.argmax(mean_scores)]
+            
+            # Plot the results
+            plt.figure(figsize=(10, 6))
+            plt.plot(k_values, mean_scores, marker='o')
+            plt.xlabel('Number of Features (k)')
+            plt.ylabel('Cross-Validated F1 Score (Macro)')
+            plt.title('F1_Score_Macro vs. Number of Features')
+            path = f'./reports/figures/f1Macro_vs_features.png'
+            plt.savefig(path)
+            mlflow.log_artifact(path)
             selector = SelectKBest(score_func=f_classif, k=optimal_k).fit(X, y)
             selected_features = X.columns[selector.get_support()]
-            mlflow.log_param("selected_features", selected_features)
+
         else:
             selector = SelectKBest(score_func=f_classif, k=ANOVA_K).fit(X, y)
             selected_features = X.columns[selector.get_support()]
-            mlflow.log_param("selected_features", selected_features)
+
         
         X = X[selected_features]
         validation_df = validation_df[selected_features]    
@@ -86,21 +107,21 @@ with mlflow.start_run(run_name="feature_engineering"):
         rf = RandomForestClassifier(random_state=RANDOM_STATE)
         rfecv_rf = RFECV(estimator=rf, step=RFECV_RF_STEP, cv=StratifiedKFold(KFOLDS), scoring=RFECV_RF_SCORING)
         rfecv_rf.fit(X, y)
-        selected_features_rf = X.columns[rfecv_rf.support_]
-        X = X[selected_features_rf]
-        validation_df = validation_df[selected_features_rf]
+        selected_features = X.columns[rfecv_rf.support_]
+        X = X[selected_features]
+        validation_df = validation_df[selected_features]
         optimal_features = rfecv_rf.n_features_
-        mlflow.log_param("selected_features", selected_features)
+ 
 
     elif SELECTION_TECHNIQUE == 'RFECV_XGB':
         xgb = XGBClassifier(random_state=RANDOM_STATE, eval_metric=RFECV_XGB_EVAL_METRIC)
         rfecv_xgb = RFECV(estimator=xgb, step=RFECV_XGB_STEP, cv=StratifiedKFold(KFOLDS), scoring=RFECV_XGB_SCORING)
         rfecv_xgb.fit(X, y)
-        selected_features_xgb = X.columns[rfecv_xgb.support_]
-        X = X[selected_features_xgb]
-        validation_df = validation_df[selected_features_xgb]
+        selected_features = X.columns[rfecv_xgb.support_]
+        X = X[selected_features]
+        validation_df = validation_df[selected_features]
         optimal_features = rfecv_xgb.n_features_
-        mlflow.log_param("selected_features", selected_features)
+
 
     elif SELECTION_TECHNIQUE == 'FORWARD_SELECTION':
         clf = {"RF": RandomForestClassifier(random_state=RANDOM_STATE, n_jobs=-1),
@@ -108,11 +129,13 @@ with mlflow.start_run(run_name="feature_engineering"):
         sfs = SequentialFeatureSelector(clf, n_features_to_select=FORWARD_SELECTION_N_FEATURES, direction=SFS_DIRECTION,
                                         scoring=FORWARD_SELECTION_SCORING, cv=FORWARD_SELECTION_CV, n_jobs=-1)
         sfs.fit(X, y)
-        selected_features_sfs = X.columns[sfs.get_support()]
-        X = X[selected_features_sfs]
-        validation_df = validation_df[selected_features_sfs]
-        mlflow.log_param("selected_features", selected_features)
+        selected_features = X.columns[sfs.get_support()]
+        X = X[selected_features]
+        validation_df = validation_df[selected_features]
 
+    
+    mlflow.log_param("selected_features", selected_features)
+    
     '''Saving processed data'''
     train_df = pd.concat([X, y], axis=1)
     train_df.to_csv(TRAIN_DATA_PROCESSED_PATH, index=False)

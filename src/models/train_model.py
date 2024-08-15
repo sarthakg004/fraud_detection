@@ -8,15 +8,18 @@ from sklearn.metrics import f1_score, confusion_matrix
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.model_selection import RandomizedSearchCV, StratifiedKFold
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
 import joblib
 import dagshub 
 
 dagshub.init(repo_owner='sarthakg004', repo_name='fraud_detection', mlflow=True)
 mlflow.set_tracking_uri("https://dagshub.com/sarthakg004/fraud_detection.mlflow")
 
+experiment_name = yaml.safe_load(open('./params.yaml'))['paths']['experiment_name']
+mlflow.set_experiment(experiment_name=experiment_name)
 
 # Start an MLflow run
-with mlflow.start_run():
+with mlflow.start_run(run_name='model_building'):   
     
     '''Loading parameters'''
     paths = yaml.safe_load(open('./params.yaml'))['paths']
@@ -28,20 +31,23 @@ with mlflow.start_run():
     TRAIN_DATA_PATH = paths['train_data_processed_path']
     VALIDATION_DATA_PATH = paths['test_data_processed_path']
     MODEL_PATH = paths['model_path']
-
     MODEL = params['model']
     TEST_SIZE = params['test_size']
     RANDOM_STATE = params['random_state']
     FEATURE_SELECTION_TECHNIQUE = yaml.safe_load(open('./params.yaml'))['feature_engineering']['selection_technique']
     HYPERPARAMETER_TUNING = params['tuning']
     THRESHOLD = params['threshold']
+    XGB_EVAL_METRIC = params['xgb_eval_metric']
 
     
-
+    mlflow.log_param("null_inputation_technique", preprocess_params['inputation_strategy'])
+    mlflow.log_param("feature_encoding_type", preprocess_params['encoding_type'])
     mlflow.log_param("test_size", TEST_SIZE)
     mlflow.log_param("feature_selection_technique", FEATURE_SELECTION_TECHNIQUE)
+    mlflow.log_param("model_type", MODEL)
     mlflow.log_param("hyperparameter_tuning", HYPERPARAMETER_TUNING)
-    mlflow.log_param("encoding_type", preprocess_params['encoding_type'])
+
+
     
     
     
@@ -56,22 +62,35 @@ with mlflow.start_run():
     if MODEL == 'XGB':
         if not HYPERPARAMETER_TUNING:
             # Initialize the XGBoost classifier
-            model = XGBClassifier(eval_metric='logloss', random_state=42)
+            model = XGBClassifier(eval_metric=XGB_EVAL_METRIC, random_state=42)
             # Train the model
             model.fit(X_train, y_train)
 
-            threshold = 0.3
+            threshold = THRESHOLD
             y_pred_proba = model.predict_proba(X_test)[:, 1]
             y_pred = (y_pred_proba >= threshold).astype(int)
 
-            # Calculate F1-score
+            # Calculate various metrics
+            accuracy = accuracy_score(y_test, y_pred)
+            precision = precision_score(y_test, y_pred, average='macro')
+            recall = recall_score(y_test, y_pred, average='macro')
             f1 = f1_score(y_test, y_pred, average='macro')
-            print(f'F1-Score on Validation Set: {f1:.4f}')
+            roc_auc = roc_auc_score(y_test, y_pred_proba)
 
-            # Log parameters and metrics
-            mlflow.log_param("model_type", MODEL)
+            # Print metrics
+            print(f'Accuracy on Validation Set: {accuracy:.4f}')
+            print(f'Precision on Validation Set: {precision:.4f}')
+            print(f'Recall on Validation Set: {recall:.4f}')
+            print(f'F1-Score on Validation Set: {f1:.4f}')
+            print(f'ROC AUC Score on Validation Set: {roc_auc:.4f}')
+
+            # Log parameters and metrics with MLflow
             mlflow.log_param("threshold", threshold)
+            mlflow.log_metric("accuracy", accuracy)
+            mlflow.log_metric("precision", precision)
+            mlflow.log_metric("recall", recall)
             mlflow.log_metric("f1_score", f1)
+            mlflow.log_metric("roc_auc_score", roc_auc)
 
             # Compute and plot the confusion matrix
             cm = confusion_matrix(y_test, y_pred)
@@ -101,7 +120,7 @@ with mlflow.start_run():
                 tree_method='gpu_hist',   # Use GPU acceleration
                 predictor='gpu_predictor',
                 objective='binary:logistic',
-                eval_metric='logloss',
+                eval_metric= XGB_EVAL_METRIC,
                 random_state=42
             )
 
@@ -129,21 +148,33 @@ with mlflow.start_run():
             # Adjusting the decision threshold
             threshold = THRESHOLD
             y_pred_proba = model.predict_proba(X_test)[:, 1]
-            y_pred_threshold = (y_pred_proba >= threshold).astype(int)
-
-            # Calculate F1-score
-            f1 = f1_score(y_test, y_pred_threshold, average='macro')
-            print(f'F1-Score on Validation Set: {f1:.4f}')
+            y_pred = (y_pred_proba >= threshold).astype(int)
 
             # Log parameters and metrics
-            mlflow.log_param("model_type", MODEL)
+            accuracy = accuracy_score(y_test, y_pred)
+            precision = precision_score(y_test, y_pred, average='macro')
+            recall = recall_score(y_test, y_pred, average='macro')
+            f1 = f1_score(y_test, y_pred, average='macro')
+            roc_auc = roc_auc_score(y_test, y_pred_proba)
+
+            # Print metrics
+            print(f'Accuracy on Validation Set: {accuracy:.4f}')
+            print(f'Precision on Validation Set: {precision:.4f}')
+            print(f'Recall on Validation Set: {recall:.4f}')
+            print(f'F1-Score on Validation Set: {f1:.4f}')
+            print(f'ROC AUC Score on Validation Set: {roc_auc:.4f}')
+
+            # Log parameters and metrics with MLflow
             mlflow.log_param("threshold", threshold)
-            mlflow.log_param("hyperparameter_tuning", HYPERPARAMETER_TUNING)
-            mlflow.log_metrics(random_search.best_params_)
+            mlflow.log_metric("accuracy", accuracy)
+            mlflow.log_metric("precision", precision)
+            mlflow.log_metric("recall", recall)
             mlflow.log_metric("f1_score", f1)
+            mlflow.log_metric("roc_auc_score", roc_auc)
+            mlflow.log_metrics(random_search.best_params_)
 
             # Compute and plot the confusion matrix
-            cm = confusion_matrix(y_test, y_pred_threshold)
+            cm = confusion_matrix(y_test, y_pred)
             plt.figure(figsize=(8, 6))
             sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', cbar=False)
             plt.xlabel('Predicted Labels')

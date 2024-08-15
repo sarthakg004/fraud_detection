@@ -10,24 +10,26 @@ paths:
 
   model_path : "./models/model.pkl"
 
+  experiment_name : "XGB with ANOVA without tuning"  # Name of the experiment
+
 preprocessing:
   null_percentage : 0.2
   null_row_threshold : 15
   # encoding_type can be either "frequency" or "ordinal" 
-  encoding_type : "frequency"  
+  encoding_type : "ordinal"  
 
-  imputation_strategy: "mean"  # can be mean, median, most_frequent i.e.mode, KNN
+  imputation_strategy: "KNN"  # can be mean, median, most_frequent i.e.mode, KNN
   knn_n_neighbors: 5          # number of neighbors to consider for KNN imputation
 
 
-### REFCV : 20 min
+### REFCV_RF : 20 min
 ### ANOVA : 1 min
 ### ANOVA_FIND_K : 75 min
 ### FORWARD_SELECTION : {rf : 150 hr , xgb : 131 min} on GPU 
 ### RFECV_XGB : 1 min
 feature_engineering:
   variance_threshold: 0.05 # threshold for variance thresholding tor remove almost constant features
-  selection_technique: "RFECV_XGB"  # method to select features, can be "RFECV_RF", "RFECV_XGB", "ANOVA","FORWARD_SELECTION"
+  selection_technique: "ANOVA"  # method to select features, can be "RFECV_RF", "RFECV_XGB", "ANOVA","FORWARD_SELECTION"
   k_folds : 5  # number of folds for cross validation
   random_state: 42
 ### Parameters for RFECV_RF
@@ -41,7 +43,7 @@ feature_engineering:
   anova_k: 10  # number of features to select
   anova_scoring : 'f1_macro'  # scoring metric for ANOVA
   ### very time consuming process
-  anova_find_k : FALSE  # using different values of k for feature selection using ANOVA and applying StratifiedKFolds 
+  anova_find_k : True  # using different values of k for feature selection using ANOVA and applying StratifiedKFolds 
                         # along with RandomForest to get the best value of K i.e. the value of K for which the performance metric is best
 
   ## parameters for FORWARD_SELECTION
@@ -54,11 +56,12 @@ feature_engineering:
   forward_selection_xgb_eval_metric: 'logloss'  # evaluation metric for XGB
   
 model_building:
-  test_size : 0.3
+  test_size : 0.2
   random_state: 42
   model : "XGB"  ## can be either 'XGB' or 'ANOMOLY'
   tuning: False
-  threshold : 0.3  # threshold for xgb model to classify a sample as fraud, threshold close to zero it is a fraud and vice versa
+  threshold : 0.05  # threshold for xgb model to classify a sample as fraud, threshold close to zero it is a fraud and vice versa
+  XGB_eval_metric : 'logloss'
 
 predict_model:
   input : 'file'  # input can be either 'manual' or 'file'
