@@ -7,7 +7,7 @@ from xgboost import XGBClassifier
 from sklearn.metrics import f1_score, confusion_matrix
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.model_selection import RandomizedSearchCV, StratifiedKFold
+from sklearn.model_selection import GridSearchCV, StratifiedKFold
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
 import joblib
 import dagshub 
@@ -37,11 +37,10 @@ with mlflow.start_run(run_name='model_building'):
     FEATURE_SELECTION_TECHNIQUE = yaml.safe_load(open('./params.yaml'))['feature_engineering']['selection_technique']
     HYPERPARAMETER_TUNING = params['tuning']
     THRESHOLD = params['threshold']
-    XGB_EVAL_METRIC = params['xgb_eval_metric']
+    XGB_EVAL_METRIC = params['XGB_eval_metric']
 
     
-    mlflow.log_param("null_inputation_technique", preprocess_params['inputation_strategy'])
-    mlflow.log_param("feature_encoding_type", preprocess_params['encoding_type'])
+
     mlflow.log_param("test_size", TEST_SIZE)
     mlflow.log_param("feature_selection_technique", FEATURE_SELECTION_TECHNIQUE)
     mlflow.log_param("model_type", MODEL)
@@ -55,6 +54,9 @@ with mlflow.start_run(run_name='model_building'):
     train_df = pd.read_csv(TRAIN_DATA_PATH)
     validation_df = pd.read_csv(VALIDATION_DATA_PATH)
 
+    mlflow.log_input(mlflow.data.from_pandas(train_df), "preprocessed_data")
+    mlflow.log_input(mlflow.data.from_pandas(validation_df), "validation_data")
+    
     # Splitting the dataset into training and testing sets
     X_train, X_test, y_train, y_test = train_test_split(train_df.drop(columns=['Target']), train_df['Target'],
                                                         test_size=TEST_SIZE, random_state=RANDOM_STATE, stratify=train_df['Target'])
@@ -86,6 +88,7 @@ with mlflow.start_run(run_name='model_building'):
 
             # Log parameters and metrics with MLflow
             mlflow.log_param("threshold", threshold)
+            mlflow.log_params(model.get_params())
             mlflow.log_metric("accuracy", accuracy)
             mlflow.log_metric("precision", precision)
             mlflow.log_metric("recall", recall)
@@ -128,22 +131,22 @@ with mlflow.start_run(run_name='model_building'):
             cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
             # Define the RandomizedSearchCV with f1 score as the scoring metric
-            random_search = RandomizedSearchCV(
+            grid_search = GridSearchCV(
                 estimator=xgb_model,
                 param_distributions=param_grid,
                 scoring='f1_macro',
                 n_iter=50,  # Number of parameter settings that are sampled
                 cv=cv,
-                verbose=1,
+                verbose=2,
                 random_state=42,
                 n_jobs=-1  # Use all available cores
             )
 
             # Fit the model to the training data
-            random_search.fit(X_train, y_train)
+            grid_search.fit(X_train, y_train)
 
             # After running the RandomizedSearchCV and obtaining the best model
-            model = random_search.best_estimator_
+            model = grid_search.best_estimator_
 
             # Adjusting the decision threshold
             threshold = THRESHOLD
@@ -171,7 +174,16 @@ with mlflow.start_run(run_name='model_building'):
             mlflow.log_metric("recall", recall)
             mlflow.log_metric("f1_score", f1)
             mlflow.log_metric("roc_auc_score", roc_auc)
-            mlflow.log_metrics(random_search.best_params_)
+            
+            for i in range(len(grid_search.cv_results_['params'])):
+                with mlflow.start_run(nested=True):
+                    # Log Hyperparameters
+                    mlflow.log_params(grid_search.cv_results_['params'][i])
+                    mlflow.log_metric('mean_f1_test_score', grid_search.cv_results_['mean_test_score'][i])
+                    
+            
+            mlflow.log_params(grid_search.best_params_)
+            
 
             # Compute and plot the confusion matrix
             cm = confusion_matrix(y_test, y_pred)
@@ -190,6 +202,8 @@ with mlflow.start_run(run_name='model_building'):
     # Save and log the model
     joblib.dump(model, MODEL_PATH)
     mlflow.log_artifact(MODEL_PATH)
-    mlflow.sklearn.log_model(model, "model")
+    signature = mlflow.models.infer_signature(X_train, model.predict(X_train))
+    mlflow.xgboost.log_model(model, "model", signature=signature)
+    mlflow.set_tag("model_type", MODEL)
 
     print("Model saved and logged successfully.")

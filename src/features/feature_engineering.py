@@ -22,6 +22,7 @@ with mlflow.start_run(run_name="feature_engineering"):
     '''Loading parameters'''
     paths = yaml.safe_load(open('./params.yaml'))['paths']
     params = yaml.safe_load(open('./params.yaml'))['feature_engineering']
+    preprocess_params = yaml.safe_load(open('./params.yaml'))['preprocessing']
 
 
 
@@ -50,6 +51,9 @@ with mlflow.start_run(run_name="feature_engineering"):
 
     
     mlflow.log_param("variance_threshold", VARIANCE_THRESHOLD)
+    mlflow.log_param("null_inputation_technique", preprocess_params['imputation_strategy'])
+    mlflow.log_param("feature_encoding_type", preprocess_params['encoding_type'])
+    mlflow.log_param("feature_selection_technique", SELECTION_TECHNIQUE)
     
     
     '''Loading data'''

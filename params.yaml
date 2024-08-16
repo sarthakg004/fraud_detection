@@ -10,7 +10,7 @@ paths:
 
   model_path : "./models/model.pkl"
 
-  experiment_name : "XGB with ANOVA without tuning"  # Name of the experiment
+  experiment_name : "XGB_with_tuning with ANOVA_best_k "  # Name of the experiment
 
 preprocessing:
   null_percentage : 0.2
@@ -59,7 +59,7 @@ model_building:
   test_size : 0.2
   random_state: 42
   model : "XGB"  ## can be either 'XGB' or 'ANOMOLY'
-  tuning: False
+  tuning: True
   threshold : 0.05  # threshold for xgb model to classify a sample as fraud, threshold close to zero it is a fraud and vice versa
   XGB_eval_metric : 'logloss'
 

@@ -3,8 +3,6 @@ import yaml
 from sklearn.impute import KNNImputer
 from sklearn.preprocessing import OrdinalEncoder
 import os
-import mlflow
-import mlflow.pyfunc
 
 
 
@@ -149,11 +147,11 @@ if ENCODING_TYPE == "ordinal":
 '''Imputing missing values'''
 if IMPUTATON_TYPE == "KNN":
     '''Imputing missing values using KNNImputer'''
-    train_exclude = train_df[['account_opening_date', 'Target']]
-    validation_exclude = validation_df[['account_opening_date']]
+    train_exclude = train_df[['Target']]
+    validation_exclude = validation_df
 
-    train_features = train_df.drop(columns=['account_opening_date', 'Target'])
-    validation_features = validation_df.drop(columns=['account_opening_date'])
+    train_features = train_df.drop(columns=['Target'])
+    validation_features = validation_df
 
     imputer = KNNImputer(n_neighbors=KNN_N_NEIGHBORS)
 

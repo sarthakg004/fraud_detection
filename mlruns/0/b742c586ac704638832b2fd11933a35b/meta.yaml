@@ -1,8 +1,9 @@
 artifact_uri: file:///C:/Users/sarth/OneDrive/Documents/fraud_detection/mlruns/0/b742c586ac704638832b2fd11933a35b/artifacts
+deleted_time: 1723829856734
 end_time: 1723657271403
 entry_point_name: ''
 experiment_id: '0'
-lifecycle_stage: active
+lifecycle_stage: deleted
 run_id: b742c586ac704638832b2fd11933a35b
 run_name: feature_engineering
 run_uuid: b742c586ac704638832b2fd11933a35b
