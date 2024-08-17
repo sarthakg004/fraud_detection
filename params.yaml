@@ -10,7 +10,7 @@ paths:
 
   model_path : "./models/model.pkl"
 
-  experiment_name : "XGB with ANOVA_best_k "  # Name of the experiment
+  experiment_name : "XGB with RFECV_RF "  # Name of the experiment
 
 preprocessing:
   null_percentage : 0.2
@@ -29,7 +29,7 @@ preprocessing:
 ### RFECV_XGB : 1 min
 feature_engineering:
   variance_threshold: 0.05 # threshold for variance thresholding tor remove almost constant features
-  selection_technique: "ANOVA"  # method to select features, can be "RFECV_RF", "RFECV_XGB", "ANOVA","FORWARD_SELECTION"
+  selection_technique: "RFECV_RF"  # method to select features, can be "RFECV_RF", "RFECV_XGB", "ANOVA","FORWARD_SELECTION"
   k_folds : 5  # number of folds for cross validation
   random_state: 42
 ### Parameters for RFECV_RF

@@ -141,7 +141,7 @@ with mlflow.start_run(run_name='model_building'):
                 estimator=xgb_model,
                 param_distributions=param_grid,
                 scoring='f1_macro',
-                n_iter=150,  # Number of parameter settings that are sampled
+                n_iter=2000,  # Number of parameter settings that are sampled
                 cv=cv,
                 verbose=1,
                 random_state=42,
@@ -181,11 +181,11 @@ with mlflow.start_run(run_name='model_building'):
             mlflow.log_metric("f1_score", f1)
             mlflow.log_metric("roc_auc_score", roc_auc)
             
-            for i in range(len(random_search.cv_results_['params'])):
-                with mlflow.start_run(nested=True):
-                    # Log Hyperparameters
-                    mlflow.log_params(random_search.cv_results_['params'][i])
-                    mlflow.log_metric('mean_f1_test_score', random_search.cv_results_['mean_test_score'][i])
+            # for i in range(len(random_search.cv_results_['params'])):
+            #     with mlflow.start_run(nested=True):
+            #         # Log Hyperparameters
+            #         mlflow.log_params(random_search.cv_results_['params'][i])
+            #         mlflow.log_metric('mean_f1_test_score', random_search.cv_results_['mean_test_score'][i])
                     
             
             mlflow.log_params(model.get_params())
