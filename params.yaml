@@ -10,7 +10,7 @@ paths:
 
   model_path : "./models/model.pkl"
 
-  experiment_name : "XGB_with_tuning with ANOVA_best_k "  # Name of the experiment
+  experiment_name : "XGB with ANOVA_best_k "  # Name of the experiment
 
 preprocessing:
   null_percentage : 0.2
@@ -25,7 +25,7 @@ preprocessing:
 ### REFCV_RF : 20 min
 ### ANOVA : 1 min
 ### ANOVA_FIND_K : 75 min
-### FORWARD_SELECTION : {rf : 150 hr , xgb : 131 min} on GPU 
+### FORWARD_SELECTION : {rf : 150 min , xgb : 131 min} on GPU 
 ### RFECV_XGB : 1 min
 feature_engineering:
   variance_threshold: 0.05 # threshold for variance thresholding tor remove almost constant features
