@@ -10,7 +10,7 @@ paths:
 
   model_path : "./models/model.pkl"
 
-  experiment_name : "XGB with RFECV_XGB "  # Name of the experiment
+  experiment_name : "XGB with Forward Selection(XGB) "  # Name of the experiment
 
 preprocessing:
   null_percentage : 0.2
@@ -28,8 +28,8 @@ preprocessing:
 ### FORWARD_SELECTION : {rf : 150 min , xgb : 131 min} on GPU 
 ### RFECV_XGB : 1 min
 feature_engineering:
-  variance_threshold: 0.05 # threshold for variance thresholding tor remove almost constant features
-  selection_technique: "RFECV_XGB"  # method to select features, can be "RFECV_RF", "RFECV_XGB", "ANOVA","FORWARD_SELECTION"
+  variance_threshold: 0 # threshold for variance thresholding tor remove almost constant features
+  selection_technique: "FORWARD_SELECTION"  # method to select features, can be "RFECV_RF", "RFECV_XGB", "ANOVA","FORWARD_SELECTION"
   k_folds : 5  # number of folds for cross validation
   random_state: 42
 ### Parameters for RFECV_RF

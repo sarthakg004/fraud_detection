@@ -115,8 +115,8 @@ with mlflow.start_run(run_name='model_building'):
         else:
             # Define the parameter grid
             param_grid = {
-                'n_estimators': [100, 200, 300, 500],
-                'max_depth': [3, 5, 7, 9],
+                'n_estimators': [100, 200, 300, 500 , 600],
+                'max_depth': [3, 5, 7, 9 , 11],
                 'learning_rate': [0.01, 0.05, 0.1, 0.2],
                 'subsample': [0.6, 0.8, 1.0],
                 'colsample_bytree': [0.6, 0.8, 1.0],
@@ -136,24 +136,44 @@ with mlflow.start_run(run_name='model_building'):
             # Define StratifiedKFold cross-validator
             cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
+            '''Random Search CV'''
             # Define the RandomizedSearchCV with f1 score as the scoring metric
-            random_search = RandomizedSearchCV(
+            # random_search = RandomizedSearchCV(
+            #     estimator=xgb_model,
+            #     param_distributions=param_grid,
+            #     scoring='f1_macro',
+            #     n_iter=2000,  # Number of parameter settings that are sampled
+            #     cv=cv,
+            #     verbose=1,
+            #     random_state=42,
+            #     n_jobs=-1  # Use all available cores
+            # )
+
+            # # Fit the model to the training data
+            # random_search.fit(X_train, y_train)
+
+            # # After running the GridSearchCV and obtaining the best model
+            # model = random_search.best_estimator_
+
+            
+            '''Grid Search CV'''
+            
+            # Define the GridSearchCV with f1 score as the scoring metric
+            grid_search = GridSearchCV(
                 estimator=xgb_model,
-                param_distributions=param_grid,
+                param_grid=param_grid,
                 scoring='f1_macro',
-                n_iter=2000,  # Number of parameter settings that are sampled
                 cv=cv,
-                verbose=1,
-                random_state=42,
+                verbose=0,
                 n_jobs=-1  # Use all available cores
             )
-
+            
             # Fit the model to the training data
-            random_search.fit(X_train, y_train)
-
+            grid_search.fit(X_train, y_train)
+            
             # After running the GridSearchCV and obtaining the best model
-            model = random_search.best_estimator_
-
+            model = grid_search.best_estimator_
+            
             # Adjusting the decision threshold
             threshold = THRESHOLD
             y_pred_proba = model.predict_proba(X_test)[:, 1]
