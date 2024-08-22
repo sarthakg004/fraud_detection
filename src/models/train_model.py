@@ -7,6 +7,7 @@ from xgboost import XGBClassifier
 from sklearn.metrics import f1_score, confusion_matrix
 import matplotlib.pyplot as plt
 import seaborn as sns
+import numpy as np
 from sklearn.model_selection import GridSearchCV, StratifiedKFold, RandomizedSearchCV
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
 import joblib
@@ -229,6 +230,51 @@ with mlflow.start_run(run_name='model_building'):
     elif MODEL == 'ANOMALY':
         pass
 
+
+
+    # Initialize lists to store false positives and false negatives
+    false_positives = []
+    false_negatives = []
+    thresholds = np.arange(0, 1.01, 0.01)
+    y_pred_proba = model.predict_proba(X_test)[:, 1]
+    # Loop over thresholds from 0.01 to 1 with a step of 0.01
+    for threshold in thresholds:
+        y_pred_threshold = (y_pred_proba >= threshold).astype(int)
+        cm = confusion_matrix(y_test, y_pred_threshold)
+        
+        # Extract false positives and false negatives from the confusion matrix
+        FP = cm[0, 1]
+        FN = cm[1, 0]
+        
+        false_positives.append(FP)
+        false_negatives.append(FN)
+
+    # Calculate the difference between false positives and false negatives
+    diff_fp_fn = np.abs(np.array(false_positives) - np.array(false_negatives))
+
+    # Find the index of the minimum difference
+    intersection_index = np.argmin(diff_fp_fn)
+    intersection_threshold = thresholds[intersection_index]
+    intersection_fp = false_positives[intersection_index]
+    intersection_fn = false_negatives[intersection_index]
+
+    # Plot the results
+    plt.figure(figsize=(10, 6))
+    plt.plot(thresholds, false_positives, label='False Positives', color='red')
+    plt.plot(thresholds, false_negatives, label='False Negatives', color='blue')
+    # Plot the intersection point
+    plt.scatter(intersection_threshold, intersection_fp, color='green', s=100, label=f'Intersection at {intersection_threshold:.2f}')
+
+    plt.xlabel('Threshold')
+    plt.ylabel('Count')
+    plt.title('False Positives and False Negatives vs Threshold')
+    plt.legend(loc='upper right')
+    plt.grid(True)
+    threshold_path = f'./reports/figures/Falsepositive_FalseNegative.png'
+    plt.savefig(threshold_path)
+    mlflow.log_artifact(threshold_path)
+    
+    
     # Save and log the model
     joblib.dump(model, MODEL_PATH)
     mlflow.log_artifact(MODEL_PATH)

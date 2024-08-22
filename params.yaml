@@ -10,7 +10,7 @@ paths:
 
   model_path : "./models/model.pkl"
 
-  experiment_name : "XGB with Forward Selection(XGB) "  # Name of the experiment
+  experiment_name : "XGB with Forward Selection(RF) "  # Name of the experiment
 
 preprocessing:
   null_percentage : 0.2
@@ -48,7 +48,7 @@ feature_engineering:
 
   ## parameters for FORWARD_SELECTION
   sfs_direction : 'forward'  # direction of forward selection, can be forward or backward
-  forward_selection_classifier: 'XGB'  # classifier to use for forward selection  can be either RF or XGB
+  forward_selection_classifier: 'RF'  # classifier to use for forward selection  can be either RF or XGB
   forward_selection_device : 'cuda'
   forward_selection_n_features: 'auto' # number of features to select
   forward_selection_scoring : 'f1_macro'  # scoring metric for forward selection
